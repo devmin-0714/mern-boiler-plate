@@ -124,3 +124,29 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 - `npm install nodemon --save-dev`
   - `-dev` : `local`에서 사용할때만
   - `script` : `"backend": "nodemon index,js"`
+
+## 9. 비밀 설정 정보 관리
+
+```js
+// index.js
+const config = require('./config/key')
+mongoose.connect(config.mongoURI, ...)
+
+// config/key.js
+if (process.env.NODE_ENV === 'production') {
+    module.exports = require('./prod')
+} else {
+    module.exports = require('./dev')
+}
+
+// config/dev.js
+module.exports = {
+    mongoURI: 'mongodb+srv://devPark:1234@react-boiler-plate.ovbtd.mongodb.net/<dbname>?retryWrites=true&w=majority'
+}
+
+// config/prod.js
+module.exports = {
+    // MONGO_URI는 헤로쿠의 이름과 동일하게
+    mongoURI: process.env.MONGO_URI
+}
+```

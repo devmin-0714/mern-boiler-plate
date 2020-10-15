@@ -4,13 +4,15 @@ const port = 5000
 const bodyParser = require('body-parser')
 const { User } = require('./models/User')
 
+const config = require('./config/key')
+
 // application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: true}))
 // application/json
 app.use(bodyParser.json())
 
 const mongoose = require('mongoose')
-mongoose.connect('mongodb+srv://devPark:1234@react-boiler-plate.ovbtd.mongodb.net/<dbname>?retryWrites=true&w=majority', {
+mongoose.connect(config.mongoURI, {
     useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false
 }).then(() => console.log('MongoDB Connected...'))
   .catch(err => console.log(err))
