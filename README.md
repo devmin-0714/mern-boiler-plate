@@ -74,7 +74,9 @@ node_modules
 ## 7. BodyParser & PostMan & 회원가입 기능
 
 - `npm install body-parser --save`
-- `Postman` : 클라이언트에 요청 테스트
+- `Postman`
+  - 클라이언트에 요청 테스트
+  - 설정 : `Body`, `raw`, `JSON`
 
 ```js
 // index.js
@@ -194,6 +196,93 @@ userSchema.pre('save', function (next) {
 })
 ```
 
-## 11. 로그인 기능 with Bcrypt
+## 11~12. 로그인 기능 with Bcrypt, 토큰 생성 with jsonwebtoken
 
--
+- **로그인 기능**
+
+  1. 요청된 이메일을 데이터베이스에서 있는지 찾는다.
+  2. 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인.
+  3. 비밀번호까지 맞다면 토큰을 생성하기.
+
+- **토큰 생성**
+- `jsonwebtoken` 라이브러리
+
+  - [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+  - 토큰 생성을 위해
+  - `npm install jsonwebtoken --save`
+
+- 쿠키 저장 라이브러리
+
+  - `npm install cookie-parser --save`
+
+```js
+// index.js
+const cookieParser = require('cookie-parser')
+app.use(cookieParser())
+
+app.post('/login', (req, res) => {
+  // 1. 요청된 이메일을 데이터베이스에서 있는지 찾는다.
+  User.findOne({ email: req.body.email }, (err, user) => {
+    if (!user) {
+      return res.json({
+        loginSuccess: false,
+        message: '제공된 이메일에 해당하는 유저가 없습니다.',
+      })
+    }
+
+    // 2. 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인
+    user.comparePassword(req.body.password, (err, isMatch) => {
+      if (!isMatch)
+        return res.json({
+          loginSuccess: false,
+          message: '비밀번호가 틀렸습니다.',
+        })
+
+      // 3. 비밀번호까지 맞다면 토큰을 생성하기
+      user.generateToken((err, user) => {
+        if (err) return res.status(400).send(err)
+
+        // 토큰을 저장한다. 어디에? (*쿠키*, 세션, 로컬스토리지)
+        res
+          .cookie('x_auth', user.token)
+          .status(200)
+          .json({ loginSuccess: true, userId: user._id })
+      })
+    })
+  })
+})
+
+// models/User.js
+const jwt = require('jsonwebtoken')
+
+// 2. 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인
+userSchema.methods.comparePassword = function (plainPassword, cb) {
+  // plainPassword : 1234567
+  // 암호화된 비밀번호 : $2b$10$kqEZbclUfOIFSnkgUZsnxurUt3ugTNAeunLyC6IudjXu.1bGg0Osa
+  // 암호화된 비밀번호는 복호화가 되지않아 plainPassword를 암호화해서 비교
+  bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
+    if (err) return cb(err)
+    cb(null, isMatch) // isMatch 정보는 index.js의 comparePassword 파라미터로 들어간다.
+  })
+}
+
+// 3. 비밀번호까지 맞다면 토큰을 생성하기
+userSchema.methods.generateToken = function (cb) {
+  // user은 userSchema를 가리키고 있다.
+  // index.js의 const user = new User(req.body)
+  var user = this
+
+  // jsonwebtoken을 이용해서 token을 생성하기
+
+  // _id는 데이터베이스의 id
+  // user._id + 'secretToken = token ------> 'secretToken' -> user._id
+  // user.id는 plain object여야 되기 때문에 toHexString
+  var token = jwt.sign(user._id.toHexString(), 'secretToken')
+
+  user.token = token
+  user.save(function (err, user) {
+    if (err) return cb(err)
+    cb(null, user) // user 정보는 index.js의 getnerateToken 파라미터로 들어간다.
+  })
+}
+```
