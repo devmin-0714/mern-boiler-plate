@@ -275,7 +275,7 @@ userSchema.methods.generateToken = function (cb) {
   // jsonwebtoken을 이용해서 token을 생성하기
 
   // _id는 데이터베이스의 id
-  // user._id + 'secretToken = token ------> 'secretToken' -> user._id
+  // user._id + 'secretToken = token ------> 'secretToken'을 넣으면 user._id가 나온다.
   // user.id는 plain object여야 되기 때문에 toHexString
   var token = jwt.sign(user._id.toHexString(), 'secretToken')
 
@@ -283,6 +283,78 @@ userSchema.methods.generateToken = function (cb) {
   user.save(function (err, user) {
     if (err) return cb(err)
     cb(null, user) // user 정보는 index.js의 getnerateToken 파라미터로 들어간다.
+  })
+}
+```
+
+## 13. Auth 기능 만들기
+
+- `클라이언트`와 `서버`의 `Token`을 비교해서 `Auth`를 관리
+- `엔드포인트` 수정
+  - `Express`의 `Router` 처리를 위해서
+  - `/api/~`
+
+```js
+// index.js
+// auth라는 미들웨어(auth.js)는 req를 받고 콜백 function을 하기 전에 어떤 일을 처리
+app.get('/api/users/auth', auth, (req, res) => {
+  // 여기까지 미들웨어를 통과해 왔다는 얘기는 Authentication이 True
+  res.status(200).json({
+    // auth.js에서 user정보를 넣었기 때문에 user._id가 가능
+    _id: req.user._id,
+    // cf) role이 0 이면 일반유저, role이 아니면 관리자
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image,
+  })
+})
+
+// middleware/auth.js
+const { User } = require('../models/User')
+
+let auth = (req, res, next) => {
+  // 인증 처리를 하는 곳
+
+  // 1. 클라이언트 쿠키에서 토큰을 가져온다. (Cookie-parser이용)
+  let token = req.cookies.x_auth
+
+  // 토큰을 복호화(decode) 한후 유저(USER ID)를 찾는다.
+  User.findByToken(token, (err, user) => {
+    if (err) throw err
+    if (!user) return res.json({ isAuth: false, error: true })
+
+    // req에 token과 user를 넣어주는 이유는
+    // index.js에서 req 정보(token, user)를 받아 처리가 가능
+    req.token = token
+    req.user = user
+    // next()를 사용하지 않으면 미들웨어 갖혀버린다.
+    next()
+  })
+}
+
+module.exports = { auth }
+
+// models/User.js
+userSchema.statics.findByToken = function (token, cb) {
+  // user은 userSchema를 가리키고 있다.
+  // index.js의 const user = new User(req.body)
+  var user = this
+
+  // 토큰을 decode 한다.
+  // decoded = user id
+  jwt.verify(token, 'secretToken', function (err, decoded) {
+    // 유저 아이디를 이용해서 유저를 찾은 다음에
+    // 클라이언트에서 가져온 token과 DB에 보관된 토큰이 일치하는지 확인
+
+    // findOne : 데이터베이스에서 찾는다.
+    user.findOne({ _id: decoded, token: token }, function (err, user) {
+      if (err) return cb(err)
+      cb(null, user)
+    })
   })
 }
 ```
