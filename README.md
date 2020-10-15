@@ -61,6 +61,11 @@ module.exports = { User }
 
   - 푸쉬하지 않을 파일 : `node.modules`
 
+```js
+// .gitignore
+node_modules
+```
+
 - `SSH`를 통한 `GitHub` 연결
   - 구글링 : `github ssh`
 
@@ -113,3 +118,9 @@ app.post('/register', (req, res) => {
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 ```
+
+## 8. Nodemon 설치
+
+- `npm install nodemon --save-dev`
+  - `-dev` : `local`에서 사용할때만
+  - `script` : `"backend": "nodemon index,js"`

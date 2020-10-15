@@ -16,7 +16,7 @@ mongoose.connect('mongodb+srv://devPark:1234@react-boiler-plate.ovbtd.mongodb.ne
   .catch(err => console.log(err))
 
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.send('Hello World!!!'))
 
 app.post('/register', (req, res) => {
 
