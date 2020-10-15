@@ -1,5 +1,7 @@
 # react-boiler-plate
 
+- 출처 : [Johan Ahn님 github](https://github.com/jaewonhimnae)
+
 ## 1~6. 초기세팅
 
 - `npm init`
@@ -175,7 +177,7 @@ userSchema.pre('save', function (next) {
   // index.js의 const user = new User(req.body)
   var user = this
 
-  // 비밀번호를 바꿀때만 저장
+  // 비밀번호를 바꿀때만 암호화
   if (user.isModified('password')) {
     // 비밀번호를 암호화 시킨다.
     bcrypt.genSalt(saltRounds, function (err, salt) {
@@ -186,6 +188,12 @@ userSchema.pre('save', function (next) {
         next()
       })
     })
+  } else {
+    next()
   }
 })
 ```
+
+## 11. 로그인 기능 with Bcrypt
+
+-
