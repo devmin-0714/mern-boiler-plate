@@ -85,7 +85,17 @@ app.get('/api/users/auth', auth, (req, res) => {
   })
 })
 
-
+// auth를 넣는 이유는 login이 되어있는 상태이기 때문에
+app.get('/api/users/logout', auth, (req, res) => {
+  User.findOneAndUpdate({ _id: req.user._id}, 
+    { token: ""},
+    (err, user) => {
+      if (err) return res.json({ success: false, err})
+      return res.status(200).send({
+        success: true
+      })
+    })
+}) 
 
 const port = 5000
 

@@ -358,3 +358,25 @@ userSchema.statics.findByToken = function (token, cb) {
   })
 }
 ```
+
+## 14. 로그아웃 기능
+
+- **로그아웃 기능**
+
+  1. 로그아웃 Route 만들기
+  2. 로그아웃 하려는 유저를 데이터베이스에서 찾아서
+  3. 그 유저의 토큰을 지워준다.
+
+- 로그아웃을 하면 Token이 사라진다.
+
+```js
+// auth를 넣는 이유는 login이 되어있는 상태이기 때문에
+app.get('/api/users/logout', auth, (req, res) => {
+  User.findOneAndUpdate({ _id: req.user._id }, { token: '' }, (err, user) => {
+    if (err) return res.json({ success: false, err })
+    return res.status(200).send({
+      success: true,
+    })
+  })
+})
+```
