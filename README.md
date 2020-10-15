@@ -153,3 +153,39 @@ module.exports = {
 // .gitignore
 dev.js
 ```
+
+## 10. Bcrypt로 비밀번호 암호화 하기
+
+- `npm install bcrypt --save`
+  - 전달받은 비밀번호 암호화
+    [bcrypt 라이브러리](https://www.npmjs.com/package/bcrypt)
+  - `Salt`를 이용해서 비밀번호를 암호화 해야 하기 때문에<br>salt를 먼저 생성
+  - `saltRounds` : `Salt`가 몇 글자인지
+
+```js
+// models/User.js
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+
+// 저장하기 전에 무엇을 하는 것 (index.js)
+
+// next는 index.js의 user.save()는 부분이 실행된다.
+userSchema.pre('save', function (next) {
+  // user은 userSchema를 가리키고 있다.
+  // index.js의 const user = new User(req.body)
+  var user = this
+
+  // 비밀번호를 바꿀때만 저장
+  if (user.isModified('password')) {
+    // 비밀번호를 암호화 시킨다.
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+      if (err) return next(err)
+      bcrypt.hash(user.password, salt, function (err, hash) {
+        if (err) return next(err)
+        user.password = hash
+        next()
+      })
+    })
+  }
+})
+```
