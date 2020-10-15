@@ -380,3 +380,170 @@ app.get('/api/users/logout', auth, (req, res) => {
   })
 })
 ```
+
+## 15~25. 초기세팅
+
+- `npx create-react-app`
+
+- `Create React App` 구조
+
+  - `_actions`, `_reducer` : `Redux`를 위한 폴더들
+  - `components/views` : `Page`들을 넣는다
+  - `components/views/Sections` : 해당 페이지에 관련된 `css 파일`이나 `component`들을 넣는다
+  - `App.js` : `Routing` 관련 일을 처리
+  - `Config.js` : 환경변수 같은 것들을 정하는 곳
+  - `hoc` : `Higher Order Component`
+    - `Auth (HOC)` - `LOGGED IN COMPONENT` : 여기서 해당 유저가 해당 페이지에 들어갈 자격이 되는지를 알아 낸 후에 자격이 된다면 `Admin component`에 가게 해주고 아니라면 다른 페이지로 보내버린다
+  - `utils` : 여러 군데에서 쓰일 수 있는 것들을 이곳에 넣어둬서 어디든 쓸 수 있게 해준다
+
+- `React Router Dom`
+
+  - `npm install react-router-dom --save`
+
+```js
+// App.js
+import React from 'react'
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
+
+import LandingPage from './components/views/LandingPage/LandingPage'
+import LoginPage from './components/views/LoginPage/LoginPage'
+import RegisterPage from './components/views/RegisterPage/RegisterPage'
+
+function App() {
+  return (
+    <Router>
+      <div>
+        <Switch>
+          <Route exact path="/" component={LandingPage} />
+          <Route exact path="/login" component={LoginPage} />
+          <Route exact path="/register" component={RegisterPage} />
+        </Switch>
+      </div>
+    </Router>
+  )
+}
+
+export default App
+```
+
+- `axios`, `Hooks`
+
+  - 클라이언트에서 서버로 데이터를 보내줄 때 (Request)
+  - `npm install axios --save`
+
+```js
+// LandingPage.js
+import React,{ useEffect} from 'react'
+import axios from 'axios'
+
+function LandingPage() {
+
+     useEffect(() => {
+        axios.get('/api/hello')
+        .then(response=> { console.log(response)})
+     }, [])
+
+    return (
+      ...
+    )
+}
+
+// server/index.js
+app.get('/api/hello', (req, res) => res.send('Hello World!~~ '))
+```
+
+- `CORS(Cross-Origin Resource Sharing)`
+
+  - 클라이언트와 서버가 두 개의 다른 포트를 가지고 있을 때
+  - `Proxy`로 문제 해결
+
+- `Proxy`
+
+  - 유저 -> Proxy Server -> 인터넷
+  - `npm intall http-proxy-middleware --save`
+
+```js
+//src/setupProxy.js
+const proxy = require('http-proxy-middleware')
+module.exports = function (app) {
+  app.use(
+    '/api',
+    proxy({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+    })
+  )
+}
+```
+
+- `Concurrently`
+
+  - 프론트, 백 서버 한번에 켜기 (**root에 설치**)
+  - `npm install concurrently --save`
+  - `concurrently "command1 arg" "command2 arg"`
+  - script : `"start": "concurrently \"command1 arg\" \"command2 arg\""`
+    - `"dev": "concurrently \"npm run backend\" \"npm run start --prefix client\""`
+
+- `Ant Design`
+
+  - `CSS Framework`
+  - `npm install antd --save`
+  - [Ant Design](https://ant.design/)
+
+## 26~28. Redux
+
+- `props` : immutable, 부모 컴포너트에서 자식 컴포넌트로 값 전달
+- `state` : mutalbe, 값이 변화하면 리렌더링이 된다
+- `Store`에서 모든 상태를 관리한다
+
+  - `Action` : 객체형태로 상태를 알려준다
+  - `Reducer` : `Action`으로 인해 바뀐 것을 설명 `(previousState, action) => nextState`
+  - `Store` : `state`를 감싸고 있으며 다양한 method를 가지고 있다. `순수 객체`, `promise`, `function(redux-thunk)`을 받을 수 있다.
+
+- `Dependency`
+
+  - `redux`
+  - `react-redux`
+  - `redux-promise` : `promise`를 받는 미들웨어
+  - `redux-thunk` : `function`을 받는 미들웨어
+
+- `Redux Dev Tools` : 크롬 익스텐션
+
+- `Redux`를 연결하는 방법
+
+```js
+// index.js
+import { Provider } from 'react-redux'
+import { applyMiddleware, createStore } from 'redux'
+import promiseMiddleware from 'redux-promise'
+import ReduxThunk from 'redux-thunk'
+import Reducer from './_reducers'
+
+const createStoreWithMiddleware = applyMiddleware(
+  promiseMiddleware,
+  ReduxThunk
+)(createStore)
+
+ReactDOM.render(
+  <Provider
+    store={createStoreWithMiddleware(
+      Reducer,
+      window.__REDUX_DEVTOOLS_EXTENSION__ &&
+        window.__REDUX_DEVTOOLS_EXTENSION__()
+    )}
+  >
+    <App />
+  </Provider>,
+  document.getElementById('root')
+)
+
+// _reducers/index.js
+import { combineReducers } from 'redux'
+//import user from './user_reducer';
+
+const rootReducer = combineReducers({
+  //user
+})
+
+export default rootReducer
+```
