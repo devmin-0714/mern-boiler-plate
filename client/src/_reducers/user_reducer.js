@@ -1,6 +1,6 @@
 // action의 타입은 _actions/types.js에서 가져온다
 import {
-    LOGIN_USER
+    LOGIN_USER, REGISTER_USER
 } from '../_actions/types'
 
 // previousState와 action을 nextState로 만든다
@@ -12,6 +12,9 @@ export default function (state={}, action) {
             return {...state, loginSuccess: action.payload}
             break
         
+        case REGISTER_USER:
+            return {...state, register: action.payload}
+            
         default:
             return state
     }

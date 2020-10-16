@@ -551,7 +551,7 @@ export default rootReducer
 
 ## 29~30. 로그인 페이지
 
-- `axios`를 사용하지 않고 리덕스를 통해 클라이언트에서 서버로 데이터를 전달
+- `axios`를 사용하지 않고 `Redux`를 통해 클라이언트에서 서버로 데이터를 전달
 
   - `axios`를 사용하였을 경우 코드
 
@@ -594,6 +594,150 @@ function LandingPage() {
 }
 export default LandingPage
 
+// RegisterPage.js
+import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { registerUser } from '../../../_actions/user_action'
+
+function RegisterPage(props) {
+  const dispatch = useDispatch()
+
+  const [Email, setEmail] = useState('')
+  const [Name, setName] = useState('')
+  const [Password, setPassword] = useState('')
+  const [ConfirmPassword, setConfirmPassword] = useState('')
+
+  const onEmailHandler = (event) => {
+    setEmail(event.currentTarget.value)
+  }
+
+  const onNameHandler = (event) => {
+    setName(event.currentTarget.value)
+  }
+
+  const onPasswordHandler = (event) => {
+    setPassword(event.currentTarget.value)
+  }
+
+  const onConfirmPasswordHandler = (event) => {
+    setConfirmPassword(event.currentTarget.value)
+  }
+
+  const onSubmitHandler = (event) => {
+    event.preventDefault()
+
+    if (Password !== ConfirmPassword) {
+      return alert('비밀번호와 비밀번호 확인은 같아야 합니다.')
+    }
+
+    let body = {
+      email: Email,
+      password: Password,
+      name: Name,
+    }
+
+    // Action 이름 : registerUser (_Action/user_action.js)
+    dispatch(registerUser(body)).then((response) => {
+      if (response.payload.success) {
+        props.history.push('/login')
+      } else {
+        alert('Failed to sign up')
+      }
+    })
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100vh',
+      }}
+    >
+      <form
+        style={{ display: 'flex', flexDirection: 'column' }}
+        onSubmit={onSubmitHandler}
+      >
+        <label>Email</label>
+        <input type="email" value={Email} onChange={onEmailHandler} />
+
+        <label>Name</label>
+        <input type="text" value={Name} onChange={onNameHandler} />
+
+        <label>Password</label>
+        <input type="password" value={Password} onChange={onPasswordHandler} />
+
+        <label>Confirm Password</label>
+        <input
+          type="password"
+          value={ConfirmPassword}
+          onChange={onConfirmPasswordHandler}
+        />
+
+        <br />
+        <button type="submit">회원가입</button>
+      </form>
+    </div>
+  )
+}
+
+export default RegisterPage
+
+// _actions/user_action.js
+import axios from 'axios'
+
+// action의 타입들만 관리(_actions/user_action.js)
+import { LOGIN_USER } from './types'
+
+// dataToSubmit : dispatch(loginUser(body))의 body부분을 받아옴 (LoginPage.js)
+export function loginUser(dataToSubmit) {
+  const request = axios
+    .post('/api/users/login', dataToSubmit)
+    .then((response) => response.data)
+  // return을 통해 (Action을) Reducer(_reducers/user_reducer.js)로 보내야 한다
+  return {
+    type: LOGIN_USER,
+    payload: request,
+  }
+}
+
+// _actions/types.js
+export const LOGIN_USER = 'login_user'
+
+// _reducers/user_reducer.js
+// action의 타입은 _actions/types.js에서 가져온다
+import { LOGIN_USER } from '../_actions/types'
+
+// previousState와 action을 nextState로 만든다
+export default function (state = {}, action) {
+  // action에서 많은 다른 타입이 오기때문에 switch를 사용해 주는 것이 좋다
+  switch (action.type) {
+    case LOGIN_USER:
+      // nextState
+      return { ...state, loginSuccess: action.payload }
+      break
+
+    default:
+      return state
+  }
+}
+
+// _reducers/index.js
+import { combineReducers } from 'redux'
+import user from './user_reducer'
+
+const rootReducer = combineReducers({
+  user,
+})
+
+export default rootReducer
+```
+
+## 31. 회원 가입 페이지
+
+```js
 // LoginPage.js
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
@@ -661,26 +805,23 @@ export default LoginPage
 import axios from 'axios'
 
 // action의 타입들만 관리(_actions/user_action.js)
-import { LOGIN_USER } from './types'
+import { LOGIN_USER, REGISTER_USER } from './types'
 
-// dataToSubmit : dispatch(loginUser(body))의 body부분을 받아옴 (LoginPage.js)
-export function loginUser(dataToSubmit) {
+// dataToSubmit : dispatch(registerUser(body))의 body부분을 받아옴 (RegisterPage.js)
+export function registerUser(dataToSubmit) {
   const request = axios
-    .post('/api/users/login', dataToSubmit)
+    .post('/api/users/register', dataToSubmit)
     .then((response) => response.data)
   // return을 통해 (Action을) Reducer(_reducers/user_reducer.js)로 보내야 한다
   return {
-    type: LOGIN_USER,
+    type: REGISTER_USER,
     payload: request,
   }
 }
 
 // _actions/types.js
-export const LOGIN_USER = 'login_user'
-
-// _reducers/user_reducer.js
 // action의 타입은 _actions/types.js에서 가져온다
-import { LOGIN_USER } from '../_actions/types'
+import { LOGIN_USER, REGISTER_USER } from '../_actions/types'
 
 // previousState와 action을 nextState로 만든다
 export default function (state = {}, action) {
@@ -691,22 +832,11 @@ export default function (state = {}, action) {
       return { ...state, loginSuccess: action.payload }
       break
 
+    case REGISTER_USER:
+      return { ...state, register: action.payload }
+
     default:
       return state
   }
 }
-
-// _reducers/index.js
-import { combineReducers } from 'redux'
-import user from './user_reducer'
-
-const rootReducer = combineReducers({
-  user,
-})
-
-export default rootReducer
 ```
-
-## 31. 회원 가입 페이지
-
--

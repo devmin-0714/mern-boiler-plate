@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { loginUser } from '../../../_actions/user_action'
+import { registerUser } from '../../../_actions/user_action'
 
 function RegisterPage(props) {
 
@@ -30,16 +30,23 @@ function RegisterPage(props) {
     const onSubmitHandler = (event) => {
         event.preventDefault()
 
-        let body = {
-            email: Email,
-            password: Password
+        if (Password !== ConfirmPassword) {
+            return alert('비밀번호와 비밀번호 확인은 같아야 합니다.')
         }
 
-        // Action 이름 : loginUser (_Action/user_action.js)
-        dispatch(loginUser(body))
+        let body = {
+            email: Email,
+            password: Password,
+            name: Name
+        }
+
+        // Action 이름 : registerUser (_Action/user_action.js)
+        dispatch(registerUser(body))
             .then(response => {
-                if (response.payload.loginSuccess) {
-                    props.history.push('/')
+                if (response.payload.success) {
+                    props.history.push('/login')
+                } else {
+                    alert("Failed to sign up")
                 }
             })
     }

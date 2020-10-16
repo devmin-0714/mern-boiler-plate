@@ -29,6 +29,8 @@ function LoginPage(props) {
             .then(response => {
                 if (response.payload.loginSuccess) {
                     props.history.push('/')
+                } else {
+                    alert('Error')
                 }
             })
     }
