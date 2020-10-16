@@ -551,6 +551,21 @@ export default rootReducer
 
 ## 29~30. 로그인 페이지
 
+- `axios`를 사용하지 않고 리덕스를 통해 클라이언트에서 서버로 데이터를 전달
+
+  - `axios`를 사용하였을 경우 코드
+
+  ```js
+  let body = {
+    email: Email,
+    password: Password,
+  }
+
+  axios.post('/api/users/login', body).then((response) => {
+    console.log(response)
+  })
+  ```
+
 ```js
 // LandingPage.js
 import React, { useEffect } from 'react'
@@ -691,3 +706,7 @@ const rootReducer = combineReducers({
 
 export default rootReducer
 ```
+
+## 31. 회원 가입 페이지
+
+-
