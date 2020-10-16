@@ -864,3 +864,126 @@ function LandingPage(props) {
   )
 }
 ```
+
+## 33~34. 인증 체크
+
+- `HOC(Higer-Order Component)`
+
+  - `function`이고 다른 컴포넌트를 받아서 새로운 컴포넌트를 리턴
+  - `백엔드`에 `Request`를 날려서 `상태`를 가져온다.
+
+- **아무나 진입 가능한 페이지**
+
+  - `Landing Page`, `About Page`
+
+- **로그인한 회원만 진입 가능한 페이지**
+
+  - `Detail Page`
+
+- **로그인 한 회원은 진입 못하는 페이지**
+
+  - `Register Page`, `Login Page`
+
+- **관리자만 진입 가능한 페이지**
+  - `Admin Page`
+
+```js
+// hoc/auth.js
+import React, { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import { auth } from '../_actions/user_action'
+
+export default function (SpecificComponent, option, adminRoute = null) {
+  // SpecificComponent : LandingPage
+  // option : null, true, false (App.js)
+  //          null => 아무나 출입이 가능한 페이지
+  //          true => 로그인한 유저만 출입이 가능한 페이지
+  //          false => 로그인한 유저는 출입 불가능한 페이지
+  // adminRoute : 어드민만 들어갈 수 있으면 true
+
+  function AuthenticationCheck(props) {
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+      dispatch(auth()).then((response) => {
+        console.log(response)
+
+        // 로그인 하지 않은 상태
+        if (!response.payload.isAuth) {
+          if (option) {
+            props.history.push('/login')
+          }
+        } else {
+          // 로그인한 상태
+          if (adminRoute && !response.payload.isAdmin) {
+            props.history.push('/')
+          } else {
+            if (option === false) props.history.push('/')
+          }
+        }
+      })
+    }, [])
+
+    return <SpecificComponent />
+  }
+  return AuthenticationCheck
+}
+
+// _actions/user_action.js
+import axios from 'axios'
+
+// get이라 body부분이 필요가 없다
+export function auth() {
+  const request = axios.get('/api/users/auth').then((response) => response.data)
+  // return을 통해 (Action을) Reducer(_reducers/user_reducer.js)로 보내야 한다
+  return {
+    type: AUTH_USER,
+    payload: request,
+  }
+}
+
+// _actions/types.js
+export const AUTH_USER = 'auth_user'
+
+// _reducers/user_reducer.js
+// action의 타입은 _actions/types.js에서 가져온다
+import { AUTH_USER } from '../_actions/types'
+
+// previousState와 action을 nextState로 만든다
+export default function (state = {}, action) {
+  // action에서 많은 다른 타입이 오기때문에 switch를 사용해 주는 것이 좋다
+  switch (action.type) {
+    // userdata : 서버에서 받은 모든 유저데이터가 들어가 있다
+    case AUTH_USER:
+      return { ...state, userData: action.payload }
+      break
+
+    default:
+      return state
+  }
+}
+
+// App.js
+import Auth from './hoc/auth'
+
+function App() {
+  return (
+    <Router>
+      <div>
+       <Switch>
+          <Route exact path="/" component={Auth(LandingPage, null, true)} />
+          <Route exact path="/login" component={Auth(LoginPage, false)} />
+          <Route exact path="/register" component={Auth(RegisterPage, false)} />
+        </Switch>
+      </div>
+    </Router>
+  )
+}
+
+// LoginPage, RegisterPage, LandingPage.js
+import { withRouter } from 'react-router-dom'
+
+...
+
+export default withRouter(LoginPage)
+```
