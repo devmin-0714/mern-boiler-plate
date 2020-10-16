@@ -840,3 +840,27 @@ export default function (state = {}, action) {
   }
 }
 ```
+
+## 32. 로그아웃
+
+```js
+// LandingPage.js
+function LandingPage(props) {
+  const onClickHandler = () => {
+    axios.get('/api/users/logout').then((response) => {
+      if (response.data.success) {
+        props.history.push('/login')
+      } else {
+        alert('로그아웃 하는데 실패했습니다.')
+      }
+    })
+  }
+
+  return (
+    <div>
+      ...
+      <button onClick={onClickHandler}>로그아웃</button>
+    </div>
+  )
+}
+```
