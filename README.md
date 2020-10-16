@@ -2,7 +2,9 @@
 
 - 출처 : [Johan Ahn님 github](https://github.com/jaewonhimnae)
 
-## 1~6. 초기세팅
+***
+
+## 1~6. 백엔드 초기세팅
 
 - `npm init`
 - `npm install express --svae`
@@ -71,15 +73,17 @@ node_modules
 - `SSH`를 통한 `GitHub` 연결
   - 구글링 : `github ssh`
 
-## 7. BodyParser & PostMan & 회원가입 기능
+***
 
+## 7. BodyParser & PostMan & 회원가입 기능
+- `BodyParser` : 클라이언트 POST request data의 body로부터 파라미터를 편리하게 추출.
 - `npm install body-parser --save`
 - `Postman`
   - 클라이언트에 요청 테스트
   - 설정 : `Body`, `raw`, `JSON`
 
 ```js
-// index.js
+⭐// index.js
 const express = require('express')
 const app = express()
 const port = 5000
@@ -122,6 +126,7 @@ app.post('/register', (req, res) => {
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 ```
+***
 
 ## 8. Nodemon 설치
 
@@ -129,45 +134,49 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`))
   - `-dev` : `local`에서 사용할때만
   - `script` : `"backend": "nodemon index,js"`
 
+***
+
 ## 9. 비밀 설정 정보 관리
 
 ```js
-// index.js
+⭐// index.js
 const config = require('./config/key')
 mongoose.connect(config.mongoURI, ...)
 
-// config/key.js
+⭐// config/key.js
 if (process.env.NODE_ENV === 'production') {
     module.exports = require('./prod')
 } else {
     module.exports = require('./dev')
 }
 
-// config/dev.js
+⭐// config/dev.js
 module.exports = {
     mongoURI: 'mongodb+srv://devPark:1234@react-boiler-plate.ovbtd.mongodb.net/<dbname>?retryWrites=true&w=majority'
 }
 
-// config/prod.js
+⭐// config/prod.js
 module.exports = {
     // MONGO_URI는 헤로쿠의 이름과 동일하게
     mongoURI: process.env.MONGO_URI
 }
 
-// .gitignore
+⭐// .gitignore
 dev.js
 ```
+
+***
 
 ## 10. Bcrypt로 비밀번호 암호화 하기
 
 - `npm install bcrypt --save`
-  - 전달받은 비밀번호 암호화
+  - 전달받은 비밀번호 암호화<br>
     [bcrypt 라이브러리](https://www.npmjs.com/package/bcrypt)
   - `Salt`를 이용해서 비밀번호를 암호화 해야 하기 때문에<br>salt를 먼저 생성
   - `saltRounds` : `Salt`가 몇 글자인지
 
 ```js
-// models/User.js
+⭐// models/User.js
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 
@@ -196,27 +205,26 @@ userSchema.pre('save', function (next) {
 })
 ```
 
+***
+
 ## 11~12. 로그인 기능 with Bcrypt, 토큰 생성 with jsonwebtoken
 
 - **로그인 기능**
-
-  1. 요청된 이메일을 데이터베이스에서 있는지 찾는다.
-  2. 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인.
-  3. 비밀번호까지 맞다면 토큰을 생성하기.
+  - 요청된 이메일을 데이터베이스에서 있는지 찾는다.
+  - 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인.
+  - 비밀번호까지 맞다면 토큰을 생성하기.
 
 - **토큰 생성**
 - `jsonwebtoken` 라이브러리
-
   - [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
   - 토큰 생성을 위해
   - `npm install jsonwebtoken --save`
 
 - 쿠키 저장 라이브러리
-
   - `npm install cookie-parser --save`
 
 ```js
-// index.js
+⭐// index.js
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
@@ -252,7 +260,7 @@ app.post('/login', (req, res) => {
   })
 })
 
-// models/User.js
+⭐// models/User.js
 const jwt = require('jsonwebtoken')
 
 // 2. 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인
@@ -287,6 +295,8 @@ userSchema.methods.generateToken = function (cb) {
 }
 ```
 
+***
+
 ## 13. Auth 기능 만들기
 
 - `클라이언트`와 `서버`의 `Token`을 비교해서 `Auth`를 관리
@@ -295,7 +305,7 @@ userSchema.methods.generateToken = function (cb) {
   - `/api/~`
 
 ```js
-// index.js
+⭐// index.js
 // auth라는 미들웨어(auth.js)는 req를 받고 콜백 function을 하기 전에 어떤 일을 처리
 app.get('/api/users/auth', auth, (req, res) => {
   // 여기까지 미들웨어를 통과해 왔다는 얘기는 Authentication이 True
@@ -313,7 +323,7 @@ app.get('/api/users/auth', auth, (req, res) => {
   })
 })
 
-// middleware/auth.js
+⭐// middleware/auth.js
 const { User } = require('../models/User')
 
 let auth = (req, res, next) => {
@@ -338,7 +348,7 @@ let auth = (req, res, next) => {
 
 module.exports = { auth }
 
-// models/User.js
+⭐// models/User.js
 userSchema.statics.findByToken = function (token, cb) {
   // user은 userSchema를 가리키고 있다.
   // index.js의 const user = new User(req.body)
@@ -359,17 +369,20 @@ userSchema.statics.findByToken = function (token, cb) {
 }
 ```
 
+***
+
 ## 14. 로그아웃 기능
 
 - **로그아웃 기능**
 
-  1. 로그아웃 Route 만들기
-  2. 로그아웃 하려는 유저를 데이터베이스에서 찾아서
-  3. 그 유저의 토큰을 지워준다.
+  - 로그아웃 Route 만들기
+  - 로그아웃 하려는 유저를 데이터베이스에서 찾아서
+  - 그 유저의 토큰을 지워준다.
 
 - 로그아웃을 하면 Token이 사라진다.
 
 ```js
+// index.js
 // auth를 넣는 이유는 login이 되어있는 상태이기 때문에
 app.get('/api/users/logout', auth, (req, res) => {
   User.findOneAndUpdate({ _id: req.user._id }, { token: '' }, (err, user) => {
@@ -380,6 +393,8 @@ app.get('/api/users/logout', auth, (req, res) => {
   })
 })
 ```
+
+***
 
 ## 15~25. 초기세팅
 
@@ -401,7 +416,7 @@ app.get('/api/users/logout', auth, (req, res) => {
   - `npm install react-router-dom --save`
 
 ```js
-// App.js
+⭐// App.js
 import React from 'react'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 
@@ -432,7 +447,7 @@ export default App
   - `npm install axios --save`
 
 ```js
-// LandingPage.js
+⭐// LandingPage.js
 import React,{ useEffect} from 'react'
 import axios from 'axios'
 
@@ -448,7 +463,7 @@ function LandingPage() {
     )
 }
 
-// server/index.js
+⭐// server/index.js
 app.get('/api/hello', (req, res) => res.send('Hello World!~~ '))
 ```
 
@@ -463,7 +478,7 @@ app.get('/api/hello', (req, res) => res.send('Hello World!~~ '))
   - `npm intall http-proxy-middleware --save`
 
 ```js
-//src/setupProxy.js
+⭐// src/setupProxy.js
 const { createProxyMiddleware } = require('http-proxy-middleware')
 
 module.exports = function (app) {
@@ -491,18 +506,18 @@ module.exports = function (app) {
   - `npm install antd --save`
   - [Ant Design](https://ant.design/)
 
+***
+
 ## 26~28. Redux
 
 - `props` : immutable, 부모 컴포너트에서 자식 컴포넌트로 값 전달
 - `state` : mutalbe, 값이 변화하면 리렌더링이 된다
 - `Store`에서 모든 상태를 관리한다
-
   - `Action` : 객체형태로 상태를 알려준다
   - `Reducer` : `Action`으로 인해 바뀐 것을 설명 `(previousState, action) => nextState`
   - `Store` : `state`를 감싸고 있으며 다양한 method를 가지고 있다. `순수 객체`, `promise`, `function(redux-thunk)`을 받을 수 있다.
 
 - `Dependency`
-
   - `redux`
   - `react-redux`
   - `redux-promise` : `promise`를 받는 미들웨어
@@ -513,7 +528,7 @@ module.exports = function (app) {
 - `Redux`를 연결하는 방법
 
 ```js
-// index.js
+⭐// index.js
 import { Provider } from 'react-redux'
 import { applyMiddleware, createStore } from 'redux'
 import promiseMiddleware from 'redux-promise'
@@ -538,7 +553,7 @@ ReactDOM.render(
   document.getElementById('root')
 )
 
-// _reducers/index.js
+⭐// _reducers/index.js
 import { combineReducers } from 'redux'
 //import user from './user_reducer';
 
@@ -548,6 +563,8 @@ const rootReducer = combineReducers({
 
 export default rootReducer
 ```
+
+***
 
 ## 29~30. 로그인 페이지
 
@@ -567,7 +584,7 @@ export default rootReducer
   ```
 
 ```js
-// LandingPage.js
+⭐// LandingPage.js
 import React, { useEffect } from 'react'
 import axios from 'axios'
 
@@ -594,7 +611,7 @@ function LandingPage() {
 }
 export default LandingPage
 
-// RegisterPage.js
+⭐// RegisterPage.js
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { registerUser } from '../../../_actions/user_action'
@@ -685,7 +702,7 @@ function RegisterPage(props) {
 
 export default RegisterPage
 
-// _actions/user_action.js
+⭐// _actions/user_action.js
 import axios from 'axios'
 
 // action의 타입들만 관리(_actions/user_action.js)
@@ -703,10 +720,10 @@ export function loginUser(dataToSubmit) {
   }
 }
 
-// _actions/types.js
+⭐// _actions/types.js
 export const LOGIN_USER = 'login_user'
 
-// _reducers/user_reducer.js
+⭐// _reducers/user_reducer.js
 // action의 타입은 _actions/types.js에서 가져온다
 import { LOGIN_USER } from '../_actions/types'
 
@@ -724,7 +741,7 @@ export default function (state = {}, action) {
   }
 }
 
-// _reducers/index.js
+⭐// _reducers/index.js
 import { combineReducers } from 'redux'
 import user from './user_reducer'
 
@@ -735,10 +752,12 @@ const rootReducer = combineReducers({
 export default rootReducer
 ```
 
+***
+
 ## 31. 회원 가입 페이지
 
 ```js
-// LoginPage.js
+⭐// LoginPage.js
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { loginUser } from '../../../_actions/user_action'
@@ -801,7 +820,7 @@ function LoginPage(props) {
 
 export default LoginPage
 
-// _actions/user_action.js
+⭐// _actions/user_action.js
 import axios from 'axios'
 
 // action의 타입들만 관리(_actions/user_action.js)
@@ -819,7 +838,7 @@ export function registerUser(dataToSubmit) {
   }
 }
 
-// _actions/types.js
+⭐// _actions/types.js
 // action의 타입은 _actions/types.js에서 가져온다
 import { LOGIN_USER, REGISTER_USER } from '../_actions/types'
 
@@ -841,10 +860,12 @@ export default function (state = {}, action) {
 }
 ```
 
+***
+
 ## 32. 로그아웃
 
 ```js
-// LandingPage.js
+⭐// LandingPage.js
 function LandingPage(props) {
   const onClickHandler = () => {
     axios.get('/api/users/logout').then((response) => {
@@ -864,6 +885,8 @@ function LandingPage(props) {
   )
 }
 ```
+
+***
 
 ## 33~34. 인증 체크
 
@@ -888,7 +911,7 @@ function LandingPage(props) {
   - `Admin Page`
 
 ```js
-// hoc/auth.js
+⭐// hoc/auth.js
 import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { auth } from '../_actions/user_action'
@@ -929,7 +952,7 @@ export default function (SpecificComponent, option, adminRoute = null) {
   return AuthenticationCheck
 }
 
-// _actions/user_action.js
+⭐// _actions/user_action.js
 import axios from 'axios'
 
 // get이라 body부분이 필요가 없다
@@ -942,10 +965,10 @@ export function auth() {
   }
 }
 
-// _actions/types.js
+⭐// _actions/types.js
 export const AUTH_USER = 'auth_user'
 
-// _reducers/user_reducer.js
+⭐// _reducers/user_reducer.js
 // action의 타입은 _actions/types.js에서 가져온다
 import { AUTH_USER } from '../_actions/types'
 
@@ -963,7 +986,7 @@ export default function (state = {}, action) {
   }
 }
 
-// App.js
+⭐// App.js
 import Auth from './hoc/auth'
 
 function App() {
