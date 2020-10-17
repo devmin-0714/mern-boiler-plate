@@ -7,22 +7,32 @@
 ## 1~6. 백엔드 초기세팅
 
 - `npm init`
-- `npm install express --svae`
 - `package.json`
-
   - `script` : `"start": "node index.js"`
 
 - `mongoDB`
-
   - 클러스터, user 생성
 
-- `index.js`
+- `Express`
+  - - `npm install express --svae`
+```js
+⭐// index.js
+const express = require('express')
+const app = express()
+const port = 5000
 
+app.get('/', (req, res) => res.send('Hello World!!!'))
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+```
+
+- `Mongoose`
+  - [Mongoose](https://www.npmjs.com/package/mongoose)
   - `npm install mongoose --save`
-  - `Model`, `Schema` 생성
+  - `Model`, `Schema` 생성 후 `Model`로 `Schema`를 감싸줘야한다.
 
 ```js
-// models/User.js
+⭐// models/User.js
 const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
@@ -59,18 +69,40 @@ const userSchema = mongoose.Schema({
 const User = mongoose.model('User', userSchema)
 
 module.exports = { User }
+
+⭐// index.js
+const { User } = require('./models/User')
+
+// application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended: true}))
+// application/json
+app.use(bodyParser.json())
+
+const mongoose = require('mongoose')
+mongoose
+  .connect(
+    'mongodb+srv://devPark:1234@react-boiler-plate.ovbtd.mongodb.net/<dbname>?retryWrites=true&w=majority',
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
+    }
+  )
+  .then(() => console.log('MongoDB Connected...'))
+  .catch((err) => console.log(err))
 ```
 
 - `.gitignore`
-
   - 푸쉬하지 않을 파일 : `node.modules`
 
 ```js
-// .gitignore
+⭐// .gitignore
 node_modules
 ```
 
 - `SSH`를 통한 `GitHub` 연결
+  - `Local`과 `GitHub` 서버와 안전하게 통신하게 하기 위해
   - 구글링 : `github ssh`
 
 ***
@@ -79,6 +111,7 @@ node_modules
 - `BodyParser` : 클라이언트 POST request data의 body로부터 파라미터를 편리하게 추출.
 - `npm install body-parser --save`
 - `Postman`
+  - [Postman](https://www.postman.com/)
   - 클라이언트에 요청 테스트
   - 설정 : `Body`, `raw`, `JSON`
 
@@ -86,7 +119,6 @@ node_modules
 ⭐// index.js
 const express = require('express')
 const app = express()
-const port = 5000
 const bodyParser = require('body-parser')
 const { User } = require('./models/User')
 
@@ -111,11 +143,12 @@ mongoose
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
+// 회원가입 기능
 app.post('/register', (req, res) => {
   // 회원 가입 할때 필요한 정보들을 clinet에서 가져오면
   // 그것들을 데이터 베이스에 넣어준다.
   const user = new User(req.body)
-  // mongoDB
+  // mongoDB에 저장
   user.save((err, userInfo) => {
     if (err) return res.json({ success: false, err })
     return res.status(200).json({
@@ -124,19 +157,23 @@ app.post('/register', (req, res) => {
   })
 })
 
+const port = 5000
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 ```
+
 ***
 
 ## 8. Nodemon 설치
 
+- 코드수정시 자동으로 서버를 재시작해 준다.
 - `npm install nodemon --save-dev`
   - `-dev` : `local`에서 사용할때만
+- `package.json` 
   - `script` : `"backend": "nodemon index,js"`
 
 ***
 
-## 9. 비밀 설정 정보 관리
+## 9. Mongoose 비밀 설정 정보 관리
 
 ```js
 ⭐// index.js
@@ -167,22 +204,36 @@ dev.js
 
 ***
 
-## 10. Bcrypt로 비밀번호 암호화 하기
+## 10. Bcrypt로 전달받은 비밀번호 암호화 하기
 
 - `npm install bcrypt --save`
+  - [bcrypt 라이브러리](https://www.npmjs.com/package/bcrypt)
   - 전달받은 비밀번호 암호화<br>
-    [bcrypt 라이브러리](https://www.npmjs.com/package/bcrypt)
-  - `Salt`를 이용해서 비밀번호를 암호화 해야 하기 때문에<br>salt를 먼저 생성
+  - `Salt`를 이용해서 비밀번호를 암호화 해야 하기 때문에<br>`salt`를 먼저 생성
   - `saltRounds` : `Salt`가 몇 글자인지
+
+```js
+// cf) index.js
+```js
+const user = new User(req.body)
+  ⭐// 이 부분에서 실행
+  user.save((err, userInfo) => {
+    if (err) return res.json({ success: false, err})
+    return res.status(200).json({
+      success: true
+    })
+  })
+})
+```
 
 ```js
 ⭐// models/User.js
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 
-// 저장하기 전에 무엇을 하는 것 (index.js)
+// DB에 저장하기 전에 무엇을 하는 것 (index.js)
 
-// next는 index.js의 user.save()는 부분이 실행된다.
+// next()를 해줘야 index.js의 user.save() 부분이 실행된다.
 userSchema.pre('save', function (next) {
   // user은 userSchema를 가리키고 있다.
   // index.js의 const user = new User(req.body)
@@ -211,16 +262,15 @@ userSchema.pre('save', function (next) {
 
 - **로그인 기능**
   - 요청된 이메일을 데이터베이스에서 있는지 찾는다.
-  - 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인.
-  - 비밀번호까지 맞다면 토큰을 생성하기.
+  - 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인
+  - 비밀번호까지 맞다면 토큰을 생성하기
 
 - **토큰 생성**
-- `jsonwebtoken` 라이브러리
-  - [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
-  - 토큰 생성을 위해
+  - [jsonwebtoken 라이브러리](https://www.npmjs.com/package/jsonwebtoken)
   - `npm install jsonwebtoken --save`
 
 - 쿠키 저장 라이브러리
+  - [cookie-parser](https://www.npmjs.com/package/cookie-parser)
   - `npm install cookie-parser --save`
 
 ```js
@@ -262,6 +312,8 @@ app.post('/login', (req, res) => {
 
 ⭐// models/User.js
 const jwt = require('jsonwebtoken')
+
+// 함수 구현
 
 // 2. 요청된 이메일이 데이터베이스에 있다면 비밀번호가 맞는 비밀번호인지 확인
 userSchema.methods.comparePassword = function (plainPassword, cb) {
@@ -382,7 +434,7 @@ userSchema.statics.findByToken = function (token, cb) {
 - 로그아웃을 하면 Token이 사라진다.
 
 ```js
-// index.js
+⭐// index.js
 // auth를 넣는 이유는 login이 되어있는 상태이기 때문에
 app.get('/api/users/logout', auth, (req, res) => {
   User.findOneAndUpdate({ _id: req.user._id }, { token: '' }, (err, user) => {
