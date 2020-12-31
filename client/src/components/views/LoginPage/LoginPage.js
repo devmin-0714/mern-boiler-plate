@@ -1,34 +1,35 @@
+// LoginPage.js
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { loginUser } from '../../../_actions/user_action'
-import { withRouter } from 'react-router-dom'
+import { withRouter, Link } from 'react-router-dom'
+import { Form, Input, Button} from 'antd'
 
-function LoginPage(props) {
+const LoginPage = (props) => {
+
     const dispatch = useDispatch()
 
     const [Email, setEmail] = useState('')
     const [Password, setPassword] = useState('')
     
-    const onEmailHandler = (event) => {
-        setEmail(event.currentTarget.value)
+    const onEmailHandler = (e) => {
+        setEmail(e.currentTarget.value)
+    }
+    const onPasswordHandler = (e) => {
+        setPassword(e.currentTarget.value)
     }
 
-    const onPasswordHandler = (event) => {
-        setPassword(event.currentTarget.value)
-    }
-
-    const onSubmitHandler = (event) => {
-        event.preventDefault()
+    const onSubmitHandler = (e) => {
+        e.preventDefault()
 
         let body = {
             email: Email,
             password: Password
         }
 
-        // Action 이름 : loginUser (_Action/user_action.js)
         dispatch(loginUser(body))
-            .then(response => {
-                if (response.payload.loginSuccess) {
+            .then(res => {
+                if (res.payload.loginSuccess) {
                     props.history.push('/')
                 } else {
                     alert('Error')
@@ -39,22 +40,28 @@ function LoginPage(props) {
     return (
         <div style={{
             display: 'flex', justifyContent: 'center', alignItems: 'center',
-            width: '100%', height: '100vh'
-        }}>
+            flexDirection: 'column', width: '100%', height: '100vh' }}>
             
-            <form style={{ display: 'flex', flexDirection: 'column' }}
-                onSubmit={onSubmitHandler}
-            >
-                <label>Email</label>
-                <input type="email" value={Email} onChange={onEmailHandler}/>
+            <Form style={{ display: 'flex', flexDirection: 'column' }}
+                onSubmit={onSubmitHandler} >
+                <label>E-mail</label>
+                <Input type='email' value={Email} onChange={onEmailHandler}/>
                 <label>Password</label>
-                <input type="password" value={Password} onChange={onPasswordHandler}/>
+                <Input type='password' value={Password} onChange={onPasswordHandler}/>
 
                 <br/>
-                <button type="submit">
+                <Button type='submit' style={{ background: '#1890ff', color: '#fff'}}>
                     Login
-                </button>
-            </form>
+                </Button>
+            </Form>
+
+            <br/>
+            
+            <Link to='/register' >
+                <Button style={{ display: 'block', background: '#1890ff', color: '#fff'}}>
+                    Register
+                </Button>
+            </Link>
 
         </div>
     )

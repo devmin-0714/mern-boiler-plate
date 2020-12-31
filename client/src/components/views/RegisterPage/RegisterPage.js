@@ -1,9 +1,11 @@
+// RegisterPage.js
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { registerUser } from '../../../_actions/user_action'
 import { withRouter } from 'react-router-dom'
+import { Form, Input, Button} from 'antd'
 
-function RegisterPage(props) {
+const RegisterPage = (props) => {
 
     const dispatch = useDispatch()
 
@@ -12,27 +14,27 @@ function RegisterPage(props) {
     const [Password, setPassword] = useState('')
     const [ConfirmPassword, setConfirmPassword] = useState('')
     
-    const onEmailHandler = (event) => {
-        setEmail(event.currentTarget.value)
+    const onEmailHandler = (e) => {
+        setEmail(e.currentTarget.value)
+    }
+    const onNameHandler = (e) => {
+        setName(e.currentTarget.value)
+    }
+    const onPasswordHandler = (e) => {
+        setPassword(e.currentTarget.value)
+    }
+    const onConfirmPasswordHandler = (e) => {
+        setConfirmPassword(e.currentTarget.value)
     }
 
-    const onNameHandler = (event) => {
-        setName(event.currentTarget.value)
-    }
+    const onSubmitHandler = (e) => {
+        e.preventDefault()
 
-    const onPasswordHandler = (event) => {
-        setPassword(event.currentTarget.value)
-    }
-
-    const onConfirmPasswordHandler = (event) => {
-        setConfirmPassword(event.currentTarget.value)
-    }
-
-    const onSubmitHandler = (event) => {
-        event.preventDefault()
-
+        if (Password.length < 5) {
+            return alert('비밀번호는 5자리 이상이여야 합니다.')
+        }
         if (Password !== ConfirmPassword) {
-            return alert('비밀번호와 비밀번호 확인은 같아야 합니다.')
+            return alert('비밀번호가 일치하지 않습니다.')
         }
 
         let body = {
@@ -41,13 +43,12 @@ function RegisterPage(props) {
             name: Name
         }
 
-        // Action 이름 : registerUser (_Action/user_action.js)
         dispatch(registerUser(body))
-            .then(response => {
-                if (response.payload.success) {
+            .then(res => {
+                if (res.payload.success) {
                     props.history.push('/login')
                 } else {
-                    alert("Failed to sign up")
+                    alert("회원가입에 실패하였습니다.")
                 }
             })
     }
@@ -55,31 +56,29 @@ function RegisterPage(props) {
     return (
         <div style={{
             display: 'flex', justifyContent: 'center', alignItems: 'center',
-            width: '100%', height: '100vh'
-        }}>
+            width: '100%', height: '100vh' }}>
             
-            <form style={{ display: 'flex', flexDirection: 'column' }}
-                onSubmit={onSubmitHandler}
-            >
-                <label>Email</label>
-                <input type="email" value={Email} onChange={onEmailHandler}/>
+            <Form style={{ display: 'flex', flexDirection: 'column' }}
+                onSubmit={onSubmitHandler}>
+                    
+                <label>E-mail</label>
+                <Input type="email" value={Email} onChange={onEmailHandler}/>
                 
                 <label>Name</label>
-                <input type="text" value={Name} onChange={onNameHandler}/>
+                <Input type="text" value={Name} onChange={onNameHandler}/>
                 
                 <label>Password</label>
-                <input type="password" value={Password} onChange={onPasswordHandler}/>
+                <Input type="password" value={Password} onChange={onPasswordHandler}/>
                 
                 <label>Confirm Password</label>
-                <input type="password" value={ConfirmPassword} onChange={onConfirmPasswordHandler}/>
-
+                <Input type="password" value={ConfirmPassword} onChange={onConfirmPasswordHandler}/>
 
                 <br/>
-                <button type="submit">
+                <Button type="submit" style={{ background: '#1890ff', color: '#fff'}}>
                     회원가입
-                </button>
-            </form>
-
+                </Button>
+            </Form>
+            
         </div>
     )
 }
